@@ -1,0 +1,39 @@
+#!/bin/sh
+
+#a script to help pera students to setup wifi with apt 
+
+#check if user is root, if not tell him to be 
+
+if [ "$(whoami)" != "root" ]; then
+	echo "Run as root"
+	echo "Ex : sudo set-pera-wifi -s"
+	exit 1
+fi
+
+usage (){
+	echo "usage: set-pera-wifi [-s | -set] | [-u | -uset]"
+	exit
+}
+
+set_apt() {
+	echo 'Acquire::http::Proxy "http://cachex.pdn.ac.lk:3128";' > /etc/apt/apt.conf	
+	echo 'Acquire::https::Proxy "http://cachex.pdn.ac.lk:3128";' >> /etc/apt/apt.conf
+	exit
+}
+
+unset_apt() {
+	rm -f /etc/apt/apt.conf
+	exit
+}
+
+if [ "$#" -gt 0 ]; then
+	if [ "$1" = "-s" ] || [ "$1" = "--set" ]; then
+		set_apt
+	elif [ "$1" = "-u" ] || [ "$1" = "--unset" ] ; then
+		unset_apt
+	else
+		usage
+	fi
+else
+	usage
+fi
