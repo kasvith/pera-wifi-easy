@@ -4,8 +4,8 @@
 
 if [ "$(whoami)" != "root" ]; then
 	echo -en "\033[1B"
-	echo "  $USER!! Please run in sudo mode"
-	echo "  type sudo ./install_wpa.sh"
+	echo -e "  \e[38;5;160m$USER!!\e[38;5;100m Please run in sudo mode"
+	echo -e "  \e[38;5;42mtype \e[38;5;190msudo ./install_wpa.sh --help\e[0;0m"
 	exit 1
 fi 
 
@@ -20,17 +20,52 @@ sudo apt-get install wpasupplicant=2.1-0ubuntu7
 sudo apt-mark hold 
 }
 
+error_update(){
+	sudo apt-get install -f wpasupplicant=2.1-0ubuntu7
+	sudo apt-mark hold 
+}
+
 restart(){
 sudo /etc/init.d/network-manager restart
 }
 
 
-set_dl
+
 #update
-if [dpkg -s wpasupplicant ==1 ] ; then
-	restart
-	echo "JOB DONE!!"
+if [[ $1 = "-h" ]] || [[ $1 = "--help" ]] ; then
+	echo -en "\e[38;5;41mAvalable options:\n"
+	echo -en "\e[17C\e[38;5;42m -wpa \e[0;0m:For installation of WPASupplicant\n"
+	echo -en "\e[17C\e[38;5;42m -cl  \e[0;0m:For clear system certificates\n"
+	echo -en "\e[2C\e[38;5;160mexample : sudo $0 -OPTION\n\e[0;0m"
 	exit 1
-else 
-	echo "run again"
-fi		
+	
+elif [[ $1 = "-wpa" ]] ; then
+		set_dl
+		update 
+	if [ $(dpkg-query -W -f='${Status}' wpasupplicant 2>/dev/null | grep -c "ok installed") = 1 ] ; then
+		
+		restart
+		echo -e "\e[38;5;42mJOB DONE!!!"
+		exit 1
+	else 
+		error_update
+		
+		if [ $(dpkg-query -W -f='${Status}' wpasupplicant 2>/dev/null | grep -c "ok installed") = 1 ] ; then
+			echo -e "\e[38;5;42mJOB DONE!!!"
+			exit 1
+		else
+			echo -e "\e[38;5;160mInstallation failed.Please run again"	
+			exit 1
+
+		fi	
+	fi
+elif [[ $1 = "-cl" ]] ; then
+	echo "HIII"
+	exit 1
+
+elif [[ $1 = "" ]] ; then
+	echo -e "\e[2C\e[38;5;160mENTER OPTION TO RUN\e[0;0m"
+	echo -e "\e[2CFor help use \e[38;5;41m --help or -h \e[0;0m"
+	echo -e "\e[2C\e[38;5;42mexample : sudo $0 -help\e[0;0m"
+	exit 1		
+fi
