@@ -37,3 +37,5 @@ if [ "$#" -gt 0 ]; then
 else
 	usage
 fi
+
+#proxy setup goes here
