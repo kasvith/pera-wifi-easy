@@ -2,7 +2,7 @@
 
 #clear
 
-#Title :Pera wifi Troubleshoot fixer 
+#Title :Pera wifi Troubleshoot fixer !
 #Author: Namila Bandara
 #github link: https://github.com/namila007/Pera_WiFi_Fixer
 
