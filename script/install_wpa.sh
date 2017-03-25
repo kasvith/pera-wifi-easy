@@ -2,22 +2,14 @@
 
 #clear
 
-<<<<<<< HEAD
-#Title :Pera wifi Troubleshoot fixer Created 
+#Title :Pera wifi Troubleshoot fixer 
 #Author: Namila Bandara
-
-
+#github link: https://github.com/namila007/Pera_WiFi_Fixer
 
 if [ "$(whoami)" != "root" ]; then
 	echo -en "\033[1B"
 	echo -e "  \e[38;5;160m$USER!!\e[38;5;100m Please run in sudo mode"
 	echo -e "  \e[38;5;42mtype \e[38;5;190msudo $0 --help\e[0;0m"
-=======
-if [ "$(whoami)" != "root" ]; then
-	echo -en "\033[1B"
-	echo -e "  \e[38;5;160m$USER!!\e[38;5;100m Please run in sudo mode"
-	echo -e "  \e[38;5;42mtype \e[38;5;190msudo ./install_wpa.sh --help\e[0;0m"
->>>>>>> origin/master
 	exit 1
 fi 
 
@@ -63,23 +55,15 @@ elif [[ $1 = "-wpa" ]] ; then
 		error_update
 		
 		if [ $(dpkg-query -W -f='${Status}' wpasupplicant 2>/dev/null | grep -c "ok installed") = 1 ] ; then
-<<<<<<< HEAD
 			echo -e "\e[38;5;42mJOB DONE!!!\e[0;0m"
 			exit 1
 		else
 			echo -e "\e[38;5;160mInstallation failed.Please run again\e[0;0m"	
-=======
-			echo -e "\e[38;5;42mJOB DONE!!!"
-			exit 1
-		else
-			echo -e "\e[38;5;160mInstallation failed.Please run again"	
->>>>>>> origin/master
 			exit 1
 
 		fi	
 	fi
 elif [[ $1 = "-cl" ]] ; then
-<<<<<<< HEAD
 
 
 	
@@ -95,9 +79,6 @@ elif [[ $1 = "-cl" ]] ; then
 	else
 		echo -e "\e[38;5;160m  no '$changefrom' found \e[0;0m"
 	fi	
-=======
-	echo "HIII"
->>>>>>> origin/master
 	exit 1
 
 elif [[ $1 = "" ]] ; then
