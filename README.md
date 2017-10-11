@@ -9,4 +9,3 @@ Download the script and change it to executable if needed
 
 ##How to use
 
-test
