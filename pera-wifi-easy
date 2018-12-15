@@ -12,7 +12,11 @@ is_root(){
 }
 
 usage (){
-	echo "usage: set-pera-wifi [-s|-u] <>"
+	echo "usage:\t$0 [--apt] [--gnome] [--proxy] <set|unset>"
+	echo "\t-h --help\t show this page"
+	echo "\t--apt\t\t sets proxy for apt"
+	echo "\t--gnome\t\t set proxy for your gnome(note run this without sudo or su for set proxy for your current account)"
+	echo "\t--proxy\t\t sets proxy for almost all apps(restart or login again for effect)"
 	exit
 }
 
@@ -115,6 +119,10 @@ if [ "$#" -gt 0 ]; then
 			;;
 		"--proxy")
 			proxy=1
+			;;
+		"-h" | "--help")
+			usage
+			exit 0
 			;;
 		*)
 			if [ $1 = 'set' ]; then
