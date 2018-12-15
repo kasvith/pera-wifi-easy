@@ -4,38 +4,193 @@
 
 #check if user is root, if not tell him to be 
 
-if [ "$(whoami)" != "root" ]; then
-	echo "Run as root"
-	echo "Ex : sudo set-pera-wifi -s"
-	exit 1
-fi
+is_root(){
+	if [ $USER != "root" ]; then
+		echo "Run as root"
+		exit 1
+	fi
+}
 
 usage (){
-	echo "usage: set-pera-wifi [-s | -set] | [-u | -uset]"
+	echo "usage: set-pera-wifi [-s|-u] <>"
 	exit
+}
+
+create_backup(){
+	file=$1
+	backup=$file".backup"
+	
+	if [ -f "$file" ]
+	then
+		echo "$file found."
+		echo "creating backup $backup..."
+		cp $file $backup
+	else
+		echo "$file not found. leaving untouched"
+	fi
+}
+
+restore_backup(){
+	file=$1
+	backup=$file".backup"
+	
+	if [ -f "$backup" ]
+	then
+		echo "$backup found."
+		echo "restoring backup $backup..."
+		mv $backup $file
+	else
+		echo "backup not found. delete $file (y/n)?"
+		read answer
+		if [ $answer = "Y" ] || [ $answer = "y" ]; then
+			rm -f $file
+		elif [ $answer = "N" ] || [ $answer = "n" ]; then
+			echo "leaving untouched..."
+		else
+			echo "unknown command"
+			exit 1
+		fi
+	fi
+}
+
+set_gnome(){
+	if ! type "gsettings" > /dev/null; then
+  		echo "Gnome is required"
+		return
+	fi
+
+	gsettings set org.gnome.system.proxy mode 'manual'
+	gsettings set org.gnome.system.proxy.http enabled true
+	gsettings set org.gnome.system.proxy.http host 'http://cachex.pdn.ac.lk'
+	gsettings set org.gnome.system.proxy.http port 3128
+	gsettings set org.gnome.system.proxy use-same-proxy true
+	gsettings set org.gnome.system.proxy ignore-hosts "['localhost',  '127.0.0.1']"
+}
+
+unset_gnome(){
+	if ! type "gsettings" > /dev/null; then
+  		echo "Gnome is required"
+		return
+	fi
+
+	gsettings set org.gnome.system.proxy mode 'none'
 }
 
 set_apt() {
-	echo 'Acquire::http::Proxy "http://cachex.pdn.ac.lk:3128";' > /etc/apt/apt.conf	
+	create_backup "/etc/apt/apt.conf"
+	echo 'Acquire::http::Proxy "http://cachex.pdn.ac.lk:3128";' >> /etc/apt/apt.conf	
 	echo 'Acquire::https::Proxy "http://cachex.pdn.ac.lk:3128";' >> /etc/apt/apt.conf
-	exit
 }
 
 unset_apt() {
-	rm -f /etc/apt/apt.conf
-	exit
+	restore_backup "/etc/apt/apt.conf"
+}
+
+set_proxy(){
+	file="/etc/environment"
+	create_backup $file
+	echo "" >> $file
+	echo "http_proxy=http://cachex.pdn.ac.lk:3128" >> $file
+	echo "https_proxy=http://cachex.pdn.ac.lk:3128" >> $file
+	echo "all_proxy=http://cachex.pdn.ac.lk:3128" >> $file
+}
+
+unset_proxy(){
+	file="/etc/environment"
+	restore_backup $file
 }
 
 if [ "$#" -gt 0 ]; then
-	if [ "$1" = "-s" ] || [ "$1" = "--set" ]; then
-		set_apt
-	elif [ "$1" = "-u" ] || [ "$1" = "--unset" ] ; then
-		unset_apt
-	else
-		usage
-	fi
+	apt=0
+	proxy=0
+	gnome=0
+
+	while [ "${1:-}" != "" ]; do
+		case "$1" in
+		"--apt")
+			apt=1
+			;;
+		"--gnome")
+			gnome=1
+			;;
+		"--proxy")
+			proxy=1
+			;;
+		*)
+			if [ $1 = 'set' ]; then
+				echo 'Setting things up...'
+				if [ $apt = '1' ]; then
+					is_root
+					echo 'Setting apt...'
+					set_apt
+					echo 'Done setting apt...'
+				fi
+
+				if [ $proxy = '1' ]; then
+					is_root
+					echo 'Setting proxy...'
+					set_proxy
+					echo 'Done setting proxy...'
+				fi
+
+				if [ $gnome = '1' ]; then
+					if [ $USER = "root" ]; then
+						echo "Note: To set gnome settings for your current user account run --gnome without sudo or su"
+						echo "Shall I set these for root account (y/n)?"
+						read answer
+						if [ $answer = "Y" ] || [ $answer = "y" ]; then
+							:
+						elif [ $answer = "N" ] || [ $answer = "n" ]; then
+							echo "leaving gnome untouched..."
+							exit 0
+						else
+							echo "unknown command"
+							exit 1
+						fi
+					fi
+					echo 'Setting gnome system wide proxy...'
+					set_gnome
+					echo 'Done setting gnome system wide proxy...'
+				fi
+			elif [ $1 = 'unset' ]; then
+				echo 'Restoring things up...'
+				if [ $apt = '1' ]; then
+					echo 'Unsetting apt...'
+					unset_apt
+					echo 'Done unsetting apt...'
+				fi
+
+				if [ $proxy = '1' ]; then
+					echo 'Unsetting proxy...'
+					unset_proxy
+					echo 'Done unsetting proxy...'
+				fi
+
+				if [ $gnome = '1' ]; then
+					if [ $USER = "root" ]; then
+						echo "Note: To set/unset gnome settings for your current user account run --gnome without sudo or su"
+						echo "Shall I unset these for root account (y/n)?"
+						read answer
+						if [ $answer = "Y" ] || [ $answer = "y" ]; then
+							:
+						elif [ $answer = "N" ] || [ $answer = "n" ]; then
+							echo "leaving gnome untouched..."
+							exit 0
+						else
+							echo "unknown command"
+							exit 1
+						fi
+					fi
+					echo 'Unsetting gnome system wide proxy...'
+					unset_gnome
+					echo 'Done unsetting gnome system wide proxy...'
+				fi
+			else
+				usage
+			fi
+		esac
+		shift
+  	done
 else
 	usage
 fi
-
-#proxy setup goes here
